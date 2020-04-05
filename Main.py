@@ -20,7 +20,7 @@ def mulEachElement(arr):
 
 class DataGenarator:
     def __init__(self, stockName):
-        self.sockName = stockName
+        self.stockName = stockName
         self.dfData = yf.download(
             tickers=stockName, period='60d', interval='2m')
         self.dates = self.extractDates()
