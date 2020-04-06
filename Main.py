@@ -23,7 +23,6 @@ class DataGenarator:
         self.stockName = stockName
         self.dfData = yf.download(
             tickers=stockName, period='60d', interval='2m')
-        print(self.dfData)
         self.dates = self.extractDates()
         self.dictData = self.convertDataFrameToDict()
         self.removeNanFromData()
@@ -95,8 +94,6 @@ class DataGenarator:
                 self.sampleShape = sample.shape
                 self.lableShape = lable.shape
 
-                print(True in tf.math.is_nan(sample).numpy().flatten().tolist())
-
                 if not (True in tf.math.is_nan(sample).numpy().flatten().tolist()) and not (True in tf.math.is_nan(lable).numpy().flatten().tolist()):
                     yield sample, lable
 
@@ -129,12 +126,7 @@ def main():
 
     model = createModel(dataGenarator.sampleShape, dataGenarator.lableShape)
 
-    testsample, _ = next(dataGenarator())
-    print(model.predict(testsample).shape)
-
-    model.fit(dataset, epochs=3, steps_per_epoch=10)
-
-    model.predict(testsample)
+    model.fit(dataset, epochs=10, steps_per_epoch=10)
 
     model.save('./Models/DenseLayers6-4-20.h5')
 
