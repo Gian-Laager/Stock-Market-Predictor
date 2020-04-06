@@ -23,11 +23,23 @@ class DataGenarator:
         self.stockName = stockName
         self.dfData = yf.download(
             tickers=stockName, period='60d', interval='2m')
+        print(self.dfData)
         self.dates = self.extractDates()
         self.dictData = self.convertDataFrameToDict()
-        self.sampleShape, self.lableShape = self.calcShapes()
+        self.removeNanFromData()
+
         self.sampleDtype = tf.double
         self.lableDtype = tf.double
+        self.sampleShape = None
+        self.lableShape = None
+        self.calcShapes()
+
+    def removeNanFromData(self):
+        keys = list(self.dictData.keys())
+
+        for key in keys:
+            if True in tf.math.is_nan(self.dictData[key]).numpy().flatten().tolist():
+                del self.dictData[key]
 
     def extractDates(self):
         dates = self.dfData.index.to_numpy()
@@ -47,18 +59,8 @@ class DataGenarator:
         return dictionary
 
     def calcShapes(self):
-        sKeys = list(self.dictData.keys())[
-            :int(len(list(self.dictData.keys())) / 2)]
-        s = []
-        for date in sKeys:
-            s.append(self.dictData
-                     [date])
-        s = np.array(s)
-
-        sampleShape = tf.TensorShape(mulEachElement(s.shape) + 1)
-        lableShape = self.dictData[list(self.dictData.keys())[0]].shape
-
-        return sampleShape, lableShape
+        # this will set the shapes
+        next(self.__call__())
 
     def __call__(self):
         for i in range(int(len(list(self.dictData
@@ -86,7 +88,35 @@ class DataGenarator:
                 for j in range(cSamples.shape[0]):
                     sample.append(cSamples[j])
 
-                yield tf.Variable(sample, dtype=self.sampleDtype), self.dictData[d].astype(self.lableDtype)
+                sample = tf.reshape(tf.Variable(sample, dtype=self.sampleDtype), (1, mulEachElement(
+                    tf.Variable(sample, dtype=self.sampleDtype).shape)))
+                lable = tf.reshape(
+                    self.dictData[d], (1, mulEachElement(self.dictData[d].shape)))
+                self.sampleShape = sample.shape
+                self.lableShape = lable.shape
+
+                print(True in tf.math.is_nan(sample).numpy().flatten().tolist())
+
+                if not (True in tf.math.is_nan(sample).numpy().flatten().tolist()) and not (True in tf.math.is_nan(lable).numpy().flatten().tolist()):
+                    yield sample, lable
+
+
+def createModel(inShape, outShape):
+    model = tf.keras.Sequential()
+
+    for _ in range(8):
+        model.add(tf.keras.layers.Dense(
+            32, activation=tf.keras.activations.relu))
+
+    for _ in range(4):
+        model.add(tf.keras.layers.Dense(
+            8, activation=tf.keras.activations.linear))
+
+    model.add(tf.keras.layers.Dense(6, activation=tf.keras.activations.linear))
+
+    model.compile(optimizer=tf.keras.optimizers.Adam(), loss='MSE')
+
+    return model
 
 
 def main():
@@ -96,6 +126,17 @@ def main():
 
     dataset = tf.data.Dataset.from_generator(
         dataGenarator, (dataGenarator.sampleDtype, dataGenarator.lableDtype), (dataGenarator.sampleShape, dataGenarator.lableShape))
+
+    model = createModel(dataGenarator.sampleShape, dataGenarator.lableShape)
+
+    testsample, _ = next(dataGenarator())
+    print(model.predict(testsample).shape)
+
+    model.fit(dataset, epochs=3, steps_per_epoch=10)
+
+    model.predict(testsample)
+
+    model.save('./Models/DenseLayers6-4-20.h5')
 
 
 if __name__ == "__main__":
