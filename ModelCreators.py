@@ -14,6 +14,6 @@ def createDenseModel(inShape, outShape):
 
     model.add(tf.keras.layers.Dense(6, activation=tf.keras.activations.linear))
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(), loss='MSE')
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss='MSE')
 
     return model

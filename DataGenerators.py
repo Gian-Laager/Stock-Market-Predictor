@@ -2,6 +2,7 @@ import yfinance as yf
 import tensorflow as tf
 import numpy as np
 from pytz import timezone
+import DataCollectors as dataCollectors
 
 
 def timedelta_to_minutes(delta):
@@ -19,12 +20,15 @@ def mulEachElement(arr):
 
 
 class BackprobegationDataGenerator:
-    def __init__(self, stockName):
+    def __init__(self, stockName, dataCollectorData=True):
         self.stockName = stockName
+        self.dataCollector = False
+        if dataCollectorData:
+            self.dataCollector = dataCollectors.BackpropegationDataCollecotr(self.stockName, f'./Data/{self.stockName}-BackPropegation.txt')
         self.dfData = yf.download(
             tickers=stockName, period='60d', interval='2m')
         self.dates = self.extractDates()
-        self.dictData = self.convertDataFrameToDict()
+        self.dictData = self.ceateDictData()
         self.removeNanFromData()
 
         self.sampleDtype = tf.double
@@ -48,12 +52,17 @@ class BackprobegationDataGenerator:
 
         return dates
 
-    def convertDataFrameToDict(self):
+    def ceateDictData(self):
         rawData = tf.Variable(self.dfData.to_numpy())
 
         dictionary = {}
         for i in range(len(self.dates)):
             dictionary[self.dates[i]] = rawData[i]
+
+        if self.dataCollector != False:
+            collectorDict = self.dataCollector.getDict()
+            for key in list(collectorDict.keys()):
+                dictionary[key] = collectorDict[key]
 
         return dictionary
 
