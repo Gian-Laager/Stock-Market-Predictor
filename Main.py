@@ -5,7 +5,6 @@ from pytz import timezone
 from DataGenerators import BackprobegationDataGenerator
 from ModelCreators import createDenseModel
 
-
 def main():
     STOCKNAME = 'AAPL'
 
@@ -17,10 +16,9 @@ def main():
     model = createDenseModel(dataGenarator.sampleShape,
                              dataGenarator.lableShape)
 
-    model.fit(dataset, epochs=10, steps_per_epoch=10)
+    model.fit(dataset, epochs=10000, steps_per_epoch=10)
 
     model.save('./Models/DenseLayers6-4-20.h5')
-
 
 if __name__ == "__main__":
     main()

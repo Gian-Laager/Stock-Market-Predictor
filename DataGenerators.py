@@ -24,7 +24,7 @@ class BackprobegationDataGenerator:
         self.stockName = stockName
         self.dataCollector = False
         if dataCollectorData:
-            self.dataCollector = dataCollectors.BackpropegationDataCollecotr(self.stockName, f'./Data/{self.stockName}-BackPropegation.txt')
+            self.dataCollector = dataCollectors.BackPropegationDataCollector(self.stockName, f'./Data/{self.stockName}-BackPropegation.txt')
         self.dfData = yf.download(
             tickers=stockName, period='60d', interval='2m')
         self.dates = self.extractDates()

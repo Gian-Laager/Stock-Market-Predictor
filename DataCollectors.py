@@ -9,121 +9,87 @@ def addThread(*funcs):
     for func in funcs:
         thread = Thread(target=func)
         thread.start()
+        thread.join()
 
 
-class TensorDecoder:
+class TensroDecoder:
     def __init__(self, tensor):
         self.tensor = tensor
 
-    def decodeDtype(self, strDtype):
-        strDtype = strDtype.split("'")[1]
-        strDtype = 'tf.' + strDtype
+    def extractDtype(self, tensor):
+        rawDtype = str(tensor.dtype)
 
-        return strDtype
+        dtype = 'tf.' + rawDtype.split("'")[1]
+        return dtype
 
     def __repr__(self):
-        tValue = str(self.tensor.numpy().tolist())
-        dtype = self.decodeDtype(str(self.tensor.dtype))
-        shape = str(self.tensor.shape)
-
-        return f"'tf.Variable({tValue}, dtype={dtype}, shape={shape})'"
+        strValue = str(self.tensor.numpy().tolist())
+        dtype = self.extractDtype(self.tensor)
+        return f'tf.Variable({strValue}, dtype={dtype}, shape={self.tensor.shape})'
 
 
-class BackpropegationDataCollecotr:
-    def __init__(self, stockName, path, prd='60d', intrvl='2m'):
-        self.filePath = path
-        self.period = prd
-        self.interval = intrvl
+class BackPropegationDataCollector:
+    def __init__(self, stockName, period='60d', interval='2m'):
+        self.filePath = f'./Data/{stockName}-BackPropegationData.txt'
         self.stockName = stockName
-        self.dfData = yf.download(
-            tickers=self.stockName, period=self.period, interval=self.interval)
-        self.__dictData = dict()
-        self.loadData()
-        self.updateFile()
+        self.interval = interval
+        self.period = period
+        self.dfData, self.dictData, self.strDict = None, None, None
+        addThread(self.updateFile())
 
-        addThread(self.threadLoopFunction)
-
-    def threadLoopFunction(self):
-        while True:
-            self.updateFile
-
-    def extractDatesFromDf(self):
-        dates = self.dfData.index.to_numpy()
+    def extractDates(self, dataFrame):
+        dates = dataFrame.index.to_numpy()
 
         for i in range(len(dates)):
             dates[i] = dates[i].to_numpy()
 
         return dates
 
-    def updateDataFrameData(self):
-        self.dfData = yf.download(
-            tickers=self.stockName, period=self.period, interval=self.interval)
-
-    def formatStrDict(self, strDict):
-        strDict = strDict.replace(' ', '')
-        strDict = strDict.replace('\n', '')        
-        return strDict
-
-    def evalStrData(self, strDict):
-        dictData = eval(strDict)
+    def convertDictDataToString(self, dictData):
+        strDict = dict()
         for key in list(dictData.keys()):
-            try:
-                dictData[key] = eval(dictData[key])
-            except SyntaxError:
-                del dictData[key]
+            strDict[key] = TensroDecoder(dictData[key])
+
+        return str(strDict)
+
+    def convertDataFrameToDict(self, dataFrame):
+        dates = self.extractDates(dataFrame)
+        data = tf.Variable(dataFrame.to_numpy())
+
+        dictData = dict()
+        strDict = dict()
+        for i in range(len(dates)):
+            dictData[dates[i]] = data[i]
 
         return dictData
+
+    def updateDictData(self):
+        self.dfData = yf.download(
+            tickers=self.stockName, period=self.period, interval=self.interval)
+        self.dictData = self.convertDataFrameToDict(self.dfData)
 
     def loadData(self):
         try:
+            self.updateDictData()
+            fileDict = dict()
             with open(self.filePath, 'r') as file:
-                strDict = file.read()
-                strDict = self.formatStrDict(strDict)
-                if len(strDict) > 0:
-                    self.__dictData = self.evalStrData(strDict)
-                else:
-                    self.__dictData = dict()
-            
-            self.updateDataFrameData()
-            newDictData = self.convertDataFrameToDict()
-            newDictData = self.removeNanFromData(newDictData)
-            for newKey in list(newDictData.keys()):
-                newDictData[newKey] = TensorDecoder(newDictData[newKey])
-                self.__dictData[newKey] = newDictData[newKey]
+                fileDict = eval(file.read())
 
+            for key in list(fileDict.keys()):
+                if not (key in list(self.dictData.keys())):
+                    self.dictData[key] = fileDict[key]
+
+            self.strDict = self.convertDictDataToString(self.dictData)
 
         except FileNotFoundError:
-            self.updateDataFrameData()
-            self.__dictData = self.convertDataFrameToDict()
-            self.__dictData = self.removeNanFromData(self.__dictData)
-            for key in list(self.__dictData.keys()):
-                self.__dictData[key] = TensorDecoder(self.__dictData[key])
-
-    def convertDataFrameToDict(self):
-        rawData = tf.Variable(self.dfData.to_numpy())
-        dates = self.extractDatesFromDf()
-
-        dictionary = {}
-        for i in range(len(dates)):
-            dictionary[dates[i]] = rawData[i]
-
-        return dictionary
-
-    def removeNanFromData(self, dictData):
-        keys = list(dictData.keys())
-
-        for key in keys:
-            if True in tf.math.is_nan(dictData[key]).numpy().flatten().tolist():
-                del dictData[key]
-
-        return dictData
+            self.updateDictData()
+            self.strDict = self.convertDictDataToString(self.dictData)
 
     def updateFile(self):
         self.loadData()
         with open(self.filePath, 'w+') as file:
-            file.write(str(self.__dictData))
+            file.write(self.strDict)
 
     def getDict(self):
-        self.updateFile()
-        debug = str(self.__dictData)
-        return self.__dictData
+        self.loadData()
+        return self.dictData
