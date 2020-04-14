@@ -16,9 +16,11 @@ def main():
     model = createDenseModel(dataGenarator.sampleShape,
                              dataGenarator.lableShape)
 
-    model.fit(dataset, epochs=10000, steps_per_epoch=10)
+    model.fit(dataset, epochs=10, steps_per_epoch=10, callbacks=[tf.keras.callbacks.EarlyStopping(monitor='loss')])
+    model.evaluate(dataset, steps=3)
 
-    model.save('./Models/DenseLayers6-4-20.h5')
+    model.save('./Models/DenseModel.h5')
+    model.plotLoss()
 
 if __name__ == "__main__":
     main()

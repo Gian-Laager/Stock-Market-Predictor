@@ -71,37 +71,38 @@ class BackprobegationDataGenerator:
         next(self.__call__())
 
     def __call__(self):
-        for i in range(int(len(list(self.dictData
-                                    .keys())) / 2), len(list(self.dictData
-                                                             .keys()))):
-            cSampleKeys = list(self.dictData
-                               .keys())[i - int(len(list(self.dictData
-                                                         .keys())) / 2):i]
-            cDate = list(self.dictData
-                         .keys())[i]
+        while True:
+            for i in range(int(len(list(self.dictData
+                                        .keys())) / 2), len(list(self.dictData
+                                                                .keys()))):
+                cSampleKeys = list(self.dictData
+                                .keys())[i - int(len(list(self.dictData
+                                                            .keys())) / 2):i]
+                cDate = list(self.dictData
+                            .keys())[i]
 
-            cSamples = []
-            for date in cSampleKeys:
-                cSamples.append(self.dictData
-                                [date])
+                cSamples = []
+                for date in cSampleKeys:
+                    cSamples.append(self.dictData
+                                    [date])
 
-            cSamples = tf.reshape(tf.Variable(
-                cSamples), (mulEachElement(tf.Variable(cSamples).shape)))
+                cSamples = tf.reshape(tf.Variable(
+                    cSamples), (mulEachElement(tf.Variable(cSamples).shape)))
 
-            for d in list(self.dictData
-                          .keys())[i+1:]:
+                for d in list(self.dictData
+                            .keys())[i+1:]:
 
-                sample = []
-                sample.append(tf.Variable(timedelta_to_minutes(d - cDate)))
-                for j in range(cSamples.shape[0]):
-                    sample.append(cSamples[j])
+                    sample = []
+                    sample.append(tf.Variable(timedelta_to_minutes(d - cDate)))
+                    for j in range(cSamples.shape[0]):
+                        sample.append(cSamples[j])
 
-                sample = tf.reshape(tf.Variable(sample, dtype=self.sampleDtype), (1, mulEachElement(
-                    tf.Variable(sample, dtype=self.sampleDtype).shape)))
-                lable = tf.reshape(
-                    self.dictData[d], (1, mulEachElement(self.dictData[d].shape)))
-                self.sampleShape = sample.shape
-                self.lableShape = lable.shape
+                    sample = tf.reshape(tf.Variable(sample, dtype=self.sampleDtype), (1, mulEachElement(
+                        tf.Variable(sample, dtype=self.sampleDtype).shape)))
+                    lable = tf.reshape(
+                        self.dictData[d], (1, mulEachElement(self.dictData[d].shape)))
+                    self.sampleShape = sample.shape
+                    self.lableShape = lable.shape
 
-                if not (True in tf.math.is_nan(sample).numpy().flatten().tolist()) and not (True in tf.math.is_nan(lable).numpy().flatten().tolist()):
-                    yield sample, lable
+                    if not (True in tf.math.is_nan(sample).numpy().flatten().tolist()) and not (True in tf.math.is_nan(lable).numpy().flatten().tolist()):
+                        yield sample, lable

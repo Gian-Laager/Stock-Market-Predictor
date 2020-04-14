@@ -1,8 +1,32 @@
 import tensorflow as tf
+from matplotlib import pyplot as plt
+
+class  ExtendedModel(tf.keras.Sequential):
+    def __init__(self, layers=None, name=None):
+        super().__init__(layers=layers, name=name)
+
+    def plotLoss(self):
+        plt.plot(self.history.history['loss'])
+        plt.title('Model loss')
+        plt.ylabel('loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Test'], loc='upper left')
+        plt.show()
+
+        plt.plot(self.history.history['loss'])
+        plt.plot(self.history.history['val_loss'])
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Test'], loc='upper left')
+        plt.show()
+
+    def fit(self, *args, **kwargs):
+        self.history = super().fit(*args, **kwargs)
 
 
 def createDenseModel(inShape, outShape):
-    model = tf.keras.Sequential()
+    model = ExtendedModel()
 
     for _ in range(8):
         model.add(tf.keras.layers.Dense(
