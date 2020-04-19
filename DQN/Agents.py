@@ -28,16 +28,19 @@ class Agent:
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])  # returns action
 
-    def replay(self, batch_size):
+    def fit(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state in minibatch:
-            target = reward
-
+            target = reward # if done 
+            target = (reward +
+                    self.gamma *
+                    np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
+            
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+                    self.epsilon *= self.epsilon_decay
 
     def load(self, name):
         self.model.load_weights(name)

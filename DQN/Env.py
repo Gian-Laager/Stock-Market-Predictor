@@ -1,6 +1,11 @@
 import yfinance as yf
 import tensorflow as tf
 import numpy as np
+import DataCollectors as dataCollectors
+
+# TODO step function
+# TODO reset function
+
 
 class DateDict(dict):
     def __init__(self, iterable={}):
@@ -23,16 +28,32 @@ class DateDict(dict):
         return retList
 
 class Env:
-    def __init__(self, stockName, stateSize=194):
-        self.dfData = yf.download(tickers=stockName, period='60d', interval='2m')
+    def __init__(self, stockName, stateSize=194, dataCollectorData=True):
+        self.dfData = yf.download(
+            tickers=stockName, period='60d', interval='2m')
         self.stateSize = stateSize
+        self.actionSize = 2
+        self.cAction = 0 # 0 = sell, 1 = buy, if it is the same two times then it means hold
         self.dates = self.extractDates()
-        self.dictData = self.createDictData()
-        self.dictDataKeyIndex = self.stateSize - 1 # the current date of the enviorment as index in the data dictonary
-        self.buyTime = None
+        self.stockName = stockName
+        self.dataCollector = False
+        if dataCollectorData:
+            self.dataCollector = dataCollectors.BackPropegationDataCollector(
+                self.stockName, f'./Data/{self.stockName}-BackPropegation.txt')
+        self.dictData = self.createDictData() # the current date of the enviorment as index in the date list
+        self.dateIndex = self.stateSize
+        self.buyTime = None # as index in the dates list
         self.reward = 0
         self.cProfit = 0
-    
+
+    def getState(self):
+        self.updateData()
+        return self.dictData[self.dates[self.dateIndex - self.stateSize]:self.dates[self.dateIndex]]
+
+    def getReward(self):
+        self.updateReward()
+        return self.reward +self.cProfit
+
     def extractDates(self):
         dates = self.dfData.index.to_numpy()
 
@@ -41,18 +62,51 @@ class Env:
 
         return dates
 
-    def ceateDictData(self):
-        rawData = tf.Variable(self.dfData.to_numpy())
+    def createDictData(self, dictionary=DateDict()):
+        rawData = self.dfData.to_numpy()
 
-        dictionary = DateDict()
         for i in range(len(self.dates)):
-            dictionary[self.dates[i]] = rawData[i]
- 
+            if not self.dates[i] in dictionary.keys():
+                dictionary[self.dates[i]] = tf.Variable(
+                    np.average(rawData[i][:-1]))
+
         if self.dataCollector != False:
             collectorDict = self.dataCollector.getDict()
             for key in list(collectorDict.keys()):
-                dictionary[key] = collectorDict[key]
+                if not key in dictionary.keys():
+                    dictionary[key] = collectorDict[key]
 
         return dictionary
 
+    def updateData(self):
+        self.dfData = yf.download(
+            tickers=self.stockName, period='60d', interval='2m')
+        self.dates = self.extractDates()
+        self.dictData = self.createDictData(self.dictData)
+
+    def updateReward(self):
+        if self.buyTime != None:
+            self.cProfit = self.dictData[self.dates[self.buyTime]] - self.dictData[self.dates[self.dateIndex]]
+
+        if self.cAction == 0 and self.buyTime != None:
+            self.reward += self.cProfit 
+            self.cProfit = 0
+            self.buyTime = None
+
+        elif self.cAction == 1 and self.buyTime == None:
+            self.buyTime = self.dateIndex
+
+    def step(self, act):
+        self.dateIndex += 1
+        self.updateData()
+        self.cAction = act
         
+        return self.getState(), self.getReward()
+
+    def reset(self):
+        self.updateData()
+        self.reward = 0
+        self.cProfit = 0
+        self.dateIndex = self.stateSize
+        self.buyTime = None
+        self.cAction = 0

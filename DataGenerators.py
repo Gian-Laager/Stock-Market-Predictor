@@ -53,11 +53,11 @@ class BackprobegationDataGenerator:
         return dates
 
     def ceateDictData(self):
-        rawData = tf.Variable(self.dfData.to_numpy())
+        rawData = self.dfData.to_numpy()
 
         dictionary = {}
         for i in range(len(self.dates)):
-            dictionary[self.dates[i]] = rawData[i]
+            dictionary[self.dates[i]] = tf.Variable(np.average(rawData[i][:len(rawData[i]) -2]))
 
         if self.dataCollector != False:
             collectorDict = self.dataCollector.getDict()
@@ -87,7 +87,7 @@ class BackprobegationDataGenerator:
                                     [date])
 
                 cSamples = tf.reshape(tf.Variable(
-                    cSamples), (mulEachElement(tf.Variable(cSamples).shape)))
+                    cSamples), (mulEachElement(tf.Variable(cSamples).shape),))
 
                 for d in list(self.dictData
                             .keys())[i+1:]:

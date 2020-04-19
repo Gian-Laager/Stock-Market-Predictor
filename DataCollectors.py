@@ -54,12 +54,11 @@ class BackPropegationDataCollector:
 
     def convertDataFrameToDict(self, dataFrame):
         dates = self.extractDates(dataFrame)
-        data = tf.Variable(dataFrame.to_numpy())
+        data = dataFrame.to_numpy()
 
         dictData = dict()
-        strDict = dict()
         for i in range(len(dates)):
-            dictData[dates[i]] = data[i]
+            dictData[dates[i]] = tf.Variable(np.average(data[i][:len(data[i]) -2]))
 
         return dictData
 

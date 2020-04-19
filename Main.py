@@ -16,8 +16,12 @@ def main():
     model = createDenseModel(dataGenarator.sampleShape,
                              dataGenarator.lableShape)
 
-    model.fit(dataset, epochs=10, steps_per_epoch=10, callbacks=[tf.keras.callbacks.EarlyStopping(monitor='loss')])
-    model.evaluate(dataset, steps=3)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./Models/checkpoints/DenseModel',
+                                                 save_weights_only=True,
+                                                 verbose=1)
+
+    model.fit(dataset, epochs=1000, steps_per_epoch=10, callbacks=[cp_callback])
+    model.evaluate(dataset, steps=10)
 
     model.save('./Models/DenseModel.h5')
     model.plotLoss()
