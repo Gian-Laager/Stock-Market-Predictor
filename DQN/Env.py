@@ -16,7 +16,7 @@ class DateDict(dict):
             return super().__getitem__(key)
 
         else:
-            keys = list(super.keys())[key]
+            keys = list(super().keys())[list(super().keys()).index(key.start): list(super().keys()).index(key.stop)]
             retDict = DateDict()
             for k in keys:
                 retDict[k] = super().__getitem__(k)
@@ -79,8 +79,8 @@ class Env:
         return dictionary
 
     def updateData(self):
-        self.dfData = yf.download(
-            tickers=self.stockName, period='60d', interval='2m')
+        # self.dfData = yf.download(
+        #     tickers=self.stockName, period='60d', interval='2m')
         self.dates = self.extractDates()
         self.dictData = self.createDictData(self.dictData)
 

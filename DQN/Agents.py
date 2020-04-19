@@ -17,7 +17,7 @@ class Agent:
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
-        self.model = self.buildModel()
+        self.model = self.buildModel((self.state_shape,), self.action_size)
 
     def memorize(self, state, action, reward, next_state):
         self.memory.append((state, action, reward, next_state))
@@ -37,7 +37,7 @@ class Agent:
                     np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
             target_f[0][action] = target
-            self.model.fit(state, target_f, epochs=1, verbose=0)
+            self.model.fit(state, target_f, epochs=1)
             
         if self.epsilon > self.epsilon_min:
                     self.epsilon *= self.epsilon_decay
@@ -45,5 +45,5 @@ class Agent:
     def load(self, name):
         self.model.load_weights(name)
 
-    def save(self, name):
-        self.model.save_weights(name)
+    def save(self, path):
+        self.model.save(path)
