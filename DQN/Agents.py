@@ -5,6 +5,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 import numpy as np
 import random
 from ModelCreators import createDenseModel
+from inspect import getsource
 
 class Agent:
     def __init__(self, state_shape, action_size, buildModel):
@@ -23,6 +24,7 @@ class Agent:
         self.memory.append((state, action, reward, next_state))
 
     def act(self, state):
+        state = state.numpy()
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
@@ -31,13 +33,15 @@ class Agent:
     def fit(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state in minibatch:
-            target = reward # if done 
+            target = reward
+            next_state = np.reshape(next_state.numpy(), [1,] + list(next_state.numpy().shape))
+            state = np.reshape(state.numpy(), [1,] + list(state.numpy().shape))
             target = (reward +
                     self.gamma *
                     np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
             target_f[0][action] = target
-            self.model.fit(state, target_f, epochs=1)
+            self.model.fit(state, target_f, epochs=1, batch_size=1, verbose=0)
             
         if self.epsilon > self.epsilon_min:
                     self.epsilon *= self.epsilon_decay

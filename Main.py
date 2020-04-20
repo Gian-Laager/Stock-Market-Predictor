@@ -32,7 +32,7 @@ def main():
 
     model = DQNModel(STOCKNAME, Agent, Env, createDenseModel)
 
-    model.fit(10000)
+    model.fit(200)
 
     model .save('./Models/DQNModel.h5')
 
