@@ -32,9 +32,9 @@ def main():
 
     model = DQNModel(STOCKNAME, Agent, Env, createDenseModel)
 
-    model.fit(200)
+    model.fit(300)
 
-    model .save('./Models/DQNModel.h5')
+    model.save('./Models/DQNModel.h5')
 
 if __name__ == "__main__":
     main()

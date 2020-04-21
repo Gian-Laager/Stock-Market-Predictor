@@ -24,7 +24,7 @@ class Agent:
         self.memory.append((state, action, reward, next_state))
 
     def act(self, state):
-        state = state.numpy()
+        state = np.reshape(state.numpy(), [1,] + list(state.numpy().shape))
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)

@@ -23,6 +23,6 @@ def createDenseModel(stateShape, actionSize):
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(actionSize, activation=tf.keras.activations.sigmoid))
 
-    model.compile(loss=tf.keras.losses.binary_crossentropy, optimizer=tf.keras.optimizers.Adam())
+    model.compile(loss=tf.keras.losses.MSE, optimizer=tf.keras.optimizers.Adam())
 
     return model
