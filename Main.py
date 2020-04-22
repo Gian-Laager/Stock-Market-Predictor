@@ -31,10 +31,11 @@ def main():
     # model.plotLoss()
 
     model = DQNModel(STOCKNAME, Agent, Env, createDenseModel)
-
+    model.env.plotData()
     model.fit(300)
 
     model.save('./Models/DQNModel.h5')
+
 
 if __name__ == "__main__":
     main()

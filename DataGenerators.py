@@ -52,6 +52,10 @@ class BackprobegationDataGenerator:
 
         return dates
 
+    def plotData(self):
+        plt.plot(tf.Variable(list(self.dictData.values())).numpy())
+        plt.show()
+
     def ceateDictData(self):
         rawData = self.dfData.to_numpy()
 

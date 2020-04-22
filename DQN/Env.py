@@ -2,10 +2,7 @@ import yfinance as yf
 import tensorflow as tf
 import numpy as np
 import DataCollectors as dataCollectors
-
-# TODO step function
-# TODO reset function
-
+from matplotlib import pyplot as plt
 
 class DateDict(dict):
     def __init__(self, iterable={}):
@@ -63,6 +60,10 @@ class Env:
             dates[i] = dates[i].to_numpy()
 
         return dates
+
+    def plotData(self):
+        plt.plot(tf.Variable(list(self.dictData.values())).numpy())
+        plt.show()
 
     def removeNanFromData(self, dictionary):
         keys = list(dictionary.keys())
