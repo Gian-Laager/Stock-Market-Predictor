@@ -37,6 +37,7 @@ class BackPropegationDataCollector:
                 tickers=self.stockName, period=self.period, interval=self.interval)
         self.dictData =self.convertDataFrameToDict(self.dfData)
         self.strDict = None
+        self.loadData()
         addThread(self.updateFile())
 
     def extractDates(self, dataFrame):
