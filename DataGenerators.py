@@ -49,6 +49,8 @@ class BackprobegationDataGenerator:
 
         for i in range(len(dates)):
             dates[i] = dates[i].to_numpy()
+        
+        dates = self.dfData.index.to_numpy()
 
         return dates
 

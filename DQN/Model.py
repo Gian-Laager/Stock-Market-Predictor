@@ -2,7 +2,7 @@ import tensorflow as tf
 
 class DQNModel:
     def __init__(self, stockName, Agent, Env, modelCreator, batchSize=64):
-        self.env = Env(stockName, dataCollectorData=False)
+        self.env = Env(stockName, dataCollectorData=True)
         self.agent = Agent(self.env.stateSize, self.env.actionSize, modelCreator)
         self.batchSize = batchSize
         
@@ -17,7 +17,7 @@ class DQNModel:
             if len(self.agent.memory) > self.batchSize:
                 self.agent.fit(self.batchSize)
 
-            print(f'Epoch: {e}, action: {action}, reward: {reward}')
+            print(f'Epoch: {e}, action: {action}, reward: {reward}, profit: {self.env.profit + self.env.cProfit}')
 
     def save(self, path):
         self.agent.save(path) 

@@ -4,7 +4,6 @@ import tensorflow as tf
 import numpy
 from threading import Thread
 
-
 def addThread(*funcs):
     for func in funcs:
         thread = Thread(target=func)
@@ -34,7 +33,10 @@ class BackPropegationDataCollector:
         self.stockName = stockName
         self.interval = interval
         self.period = period
-        self.dfData, self.dictData, self.strDict = None, None, None
+        self.dfData = yf.download(
+                tickers=self.stockName, period=self.period, interval=self.interval)
+        self.dictData =self.convertDataFrameToDict(self.dfData)
+        self.strDict = None
         addThread(self.updateFile())
 
     def extractDates(self, dataFrame):
@@ -62,7 +64,8 @@ class BackPropegationDataCollector:
 
     def convertDataFrameToDict(self, dataFrame):
         dates = self.extractDates(dataFrame)
-        data = dataFrame.to_numpy()
+        for date in dates:
+            data = dataFrame.to_numpy()
 
         dictData = dict()
         for i in range(len(dates)):
@@ -70,26 +73,17 @@ class BackPropegationDataCollector:
 
         return self.removeNanFromData(dictData)
 
-    def updateDictData(self):
-        self.dfData = yf.download(
-            tickers=self.stockName, period=self.period, interval=self.interval)
-        self.dictData = self.convertDataFrameToDict(self.dfData)
-
     def loadData(self):
         try:
-            self.updateDictData()
             fileDict = dict()
             with open(self.filePath, 'r') as file:
                 fileDict = eval(file.read())
 
-            for key in list(fileDict.keys()):
-                if not (key in list(self.dictData.keys())):
-                    self.dictData[key] = fileDict[key]
+            self.dictData.update(fileDict)
 
             self.strDict = self.convertDictDataToString(self.dictData)
 
         except FileNotFoundError:
-            self.updateDictData()
             self.strDict = self.convertDictDataToString(self.dictData)
 
     def updateFile(self):
