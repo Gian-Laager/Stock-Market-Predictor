@@ -13,7 +13,7 @@ class DateDict(dict):
             return super().__getitem__(key)
 
         else:
-            keys = list(super().keys())[list(super().keys()).index(key.start): list(super().keys()).index(key.stop)]
+            keys = np.sort(list(super().keys()))[list(super().keys()).index(key.start): list(super().keys()).index(key.stop)]
             retDict = DateDict()
             for k in keys:
                 retDict[k] = super().__getitem__(k)
@@ -48,14 +48,18 @@ class Env:
 
     def getState(self):
         self.updateData()
-        return tf.Variable(list(self.dictData[list(list(self.dictData.keys()))[self.dateIndex - self.stateSize]:list(list(self.dictData.keys()))[self.dateIndex]].values()))
+        return tf.Variable(list(self.dictData[np.sort(list(self.dictData.keys()))[self.dateIndex - self.stateSize]:np.sort(list(self.dictData.keys()))[self.dateIndex]].values()))
 
     def getReward(self):
         self.updateReward()
         return self.reward
 
     def plotData(self):
-        plt.plot(tf.Variable(list(self.dictData.values())).numpy())
+        plotData = []
+        dates = np.sort(list(self.dictData.keys()))
+        for d in dates:
+            plotData.append(self.dictData[d])
+        plt.plot(plotData)
         plt.show()
 
     def removeNanFromData(self, dictionary):
@@ -97,21 +101,23 @@ class Env:
 
     def updateReward(self):
         if self.buyTime != None:
-            self.cProfit = self.dictData[list(self.dictData.keys())[self.buyTime]] - self.dictData[list(self.dictData.keys())[self.dateIndex]]
-            self.reward = self.dictData[list(self.dictData.keys())[self.buyTime]] - self.dictData[list(self.dictData.keys())[self.dateIndex]]
+            self.cProfit = self.dictData[np.sort(np.sort(list(self.dictData.keys())))[self.buyTime]] - self.dictData[np.sort(list(self.dictData.keys()))[self.dateIndex]]
+            self.reward = self.dictData[np.sort(list(self.dictData.keys()))[self.buyTime]] - self.dictData[np.sort(list(self.dictData.keys()))[self.dateIndex]]
 
         elif self.cAction == 0 and self.sellTime != None:
-            self.reward = self.dictData[list(self.dictData.keys())[self.sellTime]] - self.dictData[list(self.dictData.keys())[self.dateIndex]]
+            self.reward = -(self.dictData[np.sort(list(self.dictData.keys()))[self.sellTime]] - self.dictData[np.sort(list(self.dictData.keys()))[self.dateIndex]]) / 4
 
         if self.cAction == 0 and self.buyTime != None:
             self.profit += self.cProfit 
             self.cProfit = 0
             self.buyTime = None
-            self.sellTime = self.dateIndex
+            self.sellTime = self.dateIndex - 1
+            self.reward = -(self.dictData[np.sort(list(self.dictData.keys()))[self.sellTime]] - self.dictData[np.sort(list(self.dictData.keys()))[self.dateIndex]]) / 4
 
         if self.cAction == 1 and self.buyTime == None:
-            self.buyTime = self.dateIndex
+            self.buyTime = self.dateIndex - 1
             self.sellTime = None
+            self.reward = self.dictData[np.sort(list(self.dictData.keys()))[self.buyTime]] - self.dictData[np.sort(list(self.dictData.keys()))[self.dateIndex]]
 
     def step(self, act):
         self.dateIndex += 1

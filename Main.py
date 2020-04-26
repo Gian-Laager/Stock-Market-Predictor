@@ -30,12 +30,9 @@ def main():
     # model.save('./Models/DenseModel.h5')
     # model.plotLoss()
 
-    model = DQNModel(STOCKNAME, Agent, Env, createDenseModel)
-    model.env.plotData()
-    model.fit(300)
-
-    model.save('./Models/DQNModel.h5')
-
+    model = DQNModel(STOCKNAME, Agent, Env, createDenseModel(pretrainedModel=False, filePath='./Models/DQNModel2.h5'), './Models/DQNModel2.h5')
+    # model.env.plotData()
+    model.fit(-1)
 
 if __name__ == "__main__":
     main()
