@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import numpy
 from threading import Thread
+import dataPreparation
 
 def addThread(*funcs):
     for func in funcs:
@@ -35,48 +36,23 @@ class BackPropegationDataCollector:
         self.period = period
         self.dfData = yf.download(
                 tickers=self.stockName, period=self.period, interval=self.interval)
-        self.dictData =self.convertDataFrameToDict(self.dfData)
+        self.dictData = dataPreparation.createDictData(self.dfData)
         self.strDict = None
         self.loadData()
         addThread(self.updateFile())
 
-    def extractDates(self, dataFrame):
-        dates = dataFrame.index.to_numpy()
 
-        for i in range(len(dates)):
-            dates[i] = dates[i].to_numpy()
-
-        return dates
 
     def convertDictDataToString(self, dictData):
-        strDict = dict()
-        for key in list(dictData.keys()):
+        strDict = dataPreparation.DateDict()
+        for key in dictData.keys():
             strDict[key] = TensroDecoder(dictData[key])
 
         return str(strDict)
 
-    def removeNanFromData(self, dictionary):
-        keys = list(dictionary.keys())
-
-        for key in keys:
-            if True in tf.math.is_nan(dictionary[key]).numpy().flatten().tolist():
-                del dictionary[key]
-        return dictionary
-
-    def convertDataFrameToDict(self, dataFrame):
-        dates = self.extractDates(dataFrame)
-        for date in dates:
-            data = dataFrame.to_numpy()
-
-        dictData = dict()
-        for i in range(len(dates)):
-            dictData[dates[i]] = tf.Variable(np.average(data[i][:len(data[i]) -2]))
-
-        return self.removeNanFromData(dictData)
-
     def loadData(self):
         try:
-            fileDict = dict()
+            fileDict = dataPreparation.DateDict()
             with open(self.filePath, 'r') as file:
                 fileDict = eval(file.read())
 
