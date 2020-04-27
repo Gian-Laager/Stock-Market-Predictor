@@ -6,16 +6,9 @@ class  ExtendedModel(tf.keras.Sequential):
         super().__init__(layers=layers, name=name)
 
     def plotLoss(self):
-        plt.plot(self.history.history['loss'])
-        plt.title('Model loss')
-        plt.ylabel('loss')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Test'], loc='upper left')
-        plt.show()
-
-        plt.plot(self.history.history['loss'])
+        plt.plot(self.hist.history['loss'])
         try:
-            plt.plot(self.history.history['val_loss'])
+            plt.plot(self.hist.history['val_loss'])
         except KeyError:
             pass
         plt.title('Model loss')
@@ -25,7 +18,7 @@ class  ExtendedModel(tf.keras.Sequential):
         plt.show()
 
     def fit(self, *args, **kwargs):
-        self.history = super().fit(*args, **kwargs)
+        self.hist = super().fit(*args, **kwargs)
 
 
 def createDenseModel(inShape, outShape):
