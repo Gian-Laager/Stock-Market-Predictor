@@ -24,7 +24,7 @@ def createDenseModel(pretrainedModel=False, filePath=None):
             model.add(tf.keras.layers.Dropout(0.25))
 
         for _ in range(8):
-            model.add(tf.keras.layers.Dense(8, activation=tf.keras.activations.softplus))
+            model.add(tf.keras.layers.Dense(8, activation=tf.keras.activations.sigmoid))
 
         model.add(tf.keras.layers.Dropout(0.25))
         model.add(tf.keras.layers.Flatten())

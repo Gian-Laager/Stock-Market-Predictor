@@ -31,7 +31,7 @@ def main():
     # model.plotLoss()
 
     model = DQNModel(STOCKNAME, Agent, Env, createDenseModel(pretrainedModel=False, filePath='./Models/DQNModel2.h5'), './Models/DQNModel2.h5')
-    # model.env.plotData()
+    model.env.plotData()
     model.fit(-1)
 
 if __name__ == "__main__":
